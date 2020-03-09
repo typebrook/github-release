@@ -10,18 +10,6 @@ Original idea comes from script by [stefanbuck](https://gist.github.com/stefanbu
 ```
 on: push
 jobs:
-  curl:
-    runs-on: ubuntu-latest
-    steps:
-    - name: curl
-      uses: wei/curl@master
-      with:
-        args: https://httpbin.org/get
-```
-
-```
-on: push
-jobs:
   upload-release-asset:
     runs-on: ubuntu-latest
     steps:
