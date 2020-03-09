@@ -1,11 +1,7 @@
-# GitHub Action for curl
+# GitHub Action for uploading release asset with curl
 
-Wraps the curl CLI to be used in GitHub Actions. See also [GitHub Action for wget](https://github.com/marketplace/actions/github-action-for-wget).
-
-
-## Features
- * make http requests
- * http errors are treated as errors
+Use a simple shell script to upload a file to an existing Github release, fork from [wei/curl](https://github.com/wei/curl).<br>
+Original idea comes from script by [stefanbuck](https://gist.github.com/stefanbuck/ce788fee19ab6eb0b4447a85fc99f447).
 
 
 ## Usage
@@ -26,38 +22,24 @@ jobs:
 ```
 on: push
 jobs:
-  curl:
+  upload-release-asset:
     runs-on: ubuntu-latest
     steps:
-    - name: curl
-      uses: wei/curl@v1
-      with:
-        args: -X POST https://httpbin.org/post
-```
-
-```
-on: push
-jobs:
-  curl:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: curl
-      uses: wei/curl@v1
-      with:
-        args: --upload-file .github/workflows/main.yml https://transfer.sh/main-workflow.yml
-```
-
-### Docker
-```
-docker run --rm $(docker build -q .) \
-  https://httpbin.org/get
+      - name: Upload file to Release Asset
+        uses: typebrook/upload-release-asset@v1
+        env:
+          github_api_token: ${{ secrets.GITHUB_TOKEN  }}
+          owner: typebrook
+          repo: upload-release-asset
+          tag: ${{ github.ref }}
+          filename: foo
+          overwrite: true
 ```
 
 
 ## Author
-[Wei He](https://github.com/wei) _github@weispot.com_
+[typebrook](https://github.com/typebrook)@gmail.com
 
 
 ## License
-[MIT](https://wei.mit-license.org)
+[MIT](https://opensource.org/licenses/mit-license.php)
