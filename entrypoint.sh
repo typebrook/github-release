@@ -18,7 +18,7 @@
 # * github_api_token
 # * overwrite (optional, could be ture, false, delete, default to be false)
 #
-# Script to upload a release asset using the GitHub API v3.
+# Script to manage a release or its asset using the GitHub API v3.
 #
 # Example:
 #
@@ -46,6 +46,10 @@ AUTH="Authorization: token $github_api_token"
 if [ "$tag" = 'LATEST' ]; then
   GH_TAGS="$GH_REPO/releases/latest"
 fi
+if [ "$type" = '' ]; then
+  sed -E -n -e ' /^$/ q; 11,$ s/^# *//p' "$0"
+  exit 0
+fi
 
 # Validate token.
 curl -o /dev/null -sH "$AUTH" $GH_REPO || { echo "Error: Invalid repo, token or network issue!";  exit 1; }
@@ -62,19 +66,19 @@ upload_asset() {
   # If exists, delete it.
   eval $(echo "$response" | grep -C2 "\"name\":.\+$(basename $filename)" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=' | sed 's/id/asset_id/')
   if [ "$asset_id" = ""  ]; then
-      echo "No need to overwrite asset"
+    echo "No need to overwrite asset"
   else
-      if [ "$overwrite" = "true" ] || [ "$overwrite" = "delete" ]; then
-          echo "Deleting asset($asset_id)... "
-          curl  -X "DELETE" -H "Authorization: token $github_api_token" "https://api.github.com/repos/$owner/$repo/releases/assets/$asset_id"
-          if [ "$overwrite" = "delete" ]; then
-              exit 0
-          fi
-      else
-          echo "File already exists on tag $tag"
-          echo "If you want to overwrite it, set overwrite=true"
-          exit 1
+    if [ "$overwrite" = "true" ] || [ "$overwrite" = "delete" ]; then
+      echo "Deleting asset($asset_id)... "
+      curl  -X "DELETE" -H "$AUTH" "$GH_REPO/releases/assets/$asset_id"
+      if [ "$overwrite" = "delete" ]; then
+          exit 0
       fi
+    else
+      echo "File already exists on tag $tag"
+      echo "If you want to overwrite it, set overwrite=true"
+      exit 1
+    fi
   fi
 
   # Upload asset
