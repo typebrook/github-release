@@ -7,6 +7,7 @@
 # Originally created by stefanbuck
 # fork from: https://gist.github.com/stefanbuck/ce788fee19ab6eb0b4447a85fc99f447
 #
+# --
 #
 # This script accepts the following parameters:
 #
@@ -17,8 +18,6 @@
 # * filename
 # * github_api_token
 # * overwrite (optional, could be ture, false, delete, default to be false)
-#
-# Script to manage a release or its asset using the GitHub API v3.
 #
 # Example:
 #
@@ -47,7 +46,7 @@ if [ "$tag" = 'LATEST' ]; then
   GH_TAGS="$GH_REPO/releases/latest"
 fi
 if [ "$type" = '' ]; then
-  sed -E -n -e ' /^$/ q; 11,$ s/^# *//p' "$0"
+  sed -E -n -e ' /^$/ q; /# --/,$ s/^# *//p' "$0"
   exit 0
 fi
 
