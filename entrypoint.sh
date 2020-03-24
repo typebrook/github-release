@@ -64,7 +64,7 @@ eval $(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:al
 
 post_asset() {
   # Upload asset
-  echo "Uploading asset... " > /dev/tty
+  echo "Uploading asset... "
   # Construct url
   GH_ASSET="https://uploads.github.com/repos/$repo/releases/$release_id/assets?name=$(basename $1)"
 
@@ -72,7 +72,7 @@ post_asset() {
 }
 
 delete_asset() {
-  echo "Deleting asset($1)... " > /dev/tty
+  echo "Deleting asset($1)... "
   curl -X "DELETE" -H "$AUTH" "$GH_REPO/releases/assets/$1"
 }
 
@@ -88,7 +88,7 @@ upload_asset() {
       new_asset_id=$(post_asset ${filename}_bak | sed -E 's/^\{[^{]+"id":([0-9]+).+$/\1/')
       [ "$new_asset_id" = "" ] && exit 1 || delete_asset "$asset_id"
 
-      echo "Renaming asset($new_asset_id) from $(basename $filename)_bak to $(basename $filename)" > /dev/tty
+      echo "Renaming asset($new_asset_id) from $(basename $filename)_bak to $(basename $filename)"
       curl -X PATCH -H "$AUTH" -H "Content-Type: application/json" \
         --data "{\"name\":\"$(basename $filename)\"}" "$GH_REPO/releases/assets/$new_asset_id"
     elif [ "$overwrite" = "delete" ]; then
