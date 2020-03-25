@@ -67,7 +67,7 @@ post_asset() {
   # Upload asset
   echo "Uploading asset... "
   # Construct url
-  GH_ASSET="https://uploads.github.com/repos/$repo/releases/$release_id/assets?name=$(basename $1)"
+  GH_ASSET="https://uploads.github.com/repos/$repo/releases/$release_id/assets?name=$1"
 
   curl --data-binary @"$filename" -H "$AUTH" -H "Content-Type: application/octet-stream" $GH_ASSET
 }
@@ -75,7 +75,7 @@ post_asset() {
 rename_asset() {
   echo "Renaming asset($1) from $2 to $3"
   curl -X PATCH -H "$AUTH" -H "Content-Type: application/json" \
-    --data "{\"name\":\"$3\"}" "$GH_REPO/releases/assets/$1"
+    --data "{\"name\":\"$3\", \"label\":\"$3\"}" "$GH_REPO/releases/assets/$1"
 }
 
 delete_asset() {
@@ -89,13 +89,13 @@ upload_asset() {
   eval $(echo "$response" | grep -C2 "\"name\": \"$(basename $filename)\"" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=' | sed 's/id/asset_id/')
   if [ "$asset_id" = ""  ]; then
     echo "No need to overwrite asset"
-    post_asset $filename
+    post_asset $(basename $filename)
   else
     if [ "$action" = "overwrite" ]; then
-      new_asset_id=$(post_asset "bak_$filename" | sed -E 's/^\{[^{]+"id":([0-9]+).+$/\1/')
+      new_asset_id=$(post_asset "bak_$(basename $filename)" | sed -E 's/^\{[^{]+"id":([0-9]+).+$/\1/')
       [ "$new_asset_id" = "" ] && exit 1 || delete_asset "$asset_id"
 
-      rename_asset "$new_asset_id" "bak_$filename" "$filename"
+      rename_asset "$new_asset_id" "bak_$(basename $filename)" "$(basename $filename)"
     elif [ "$action" = "rename" ]; then
       rename_asset "$asset_id" "$filename" "$extra"
     elif [ "$action" = "delete" ]; then
