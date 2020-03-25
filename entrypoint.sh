@@ -32,6 +32,8 @@ set -e
 
 # Validate settings.
 [ "$TRACE" ] && set -x
+# Keep tty
+exec 3>&1
 
 CONFIG=$@
 
@@ -65,7 +67,7 @@ eval $(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:al
 
 post_asset() {
   # Upload asset
-  echo "Uploading asset... " > /dev/tty
+  echo "Uploading asset... " >&3
   # Construct url
   GH_ASSET="https://uploads.github.com/repos/$repo/releases/$release_id/assets?name=$1"
 
@@ -73,13 +75,13 @@ post_asset() {
 }
 
 rename_asset() {
-  echo "Renaming asset($1) from $2 to $3" > /dev/tty
+  echo "Renaming asset($1) from $2 to $3" >&3
   curl -X PATCH -H "$AUTH" -H "Content-Type: application/json" \
     --data "{\"name\":\"$3\", \"label\":\"$3\"}" "$GH_REPO/releases/assets/$1"
 }
 
 delete_asset() {
-  echo "Deleting asset($1)... " > /dev/tty
+  echo "Deleting asset($1)... " >&3
   curl -X "DELETE" -H "$AUTH" "$GH_REPO/releases/assets/$1"
 }
 
