@@ -18,6 +18,7 @@
 # * github_api_token
 # * action (optional, could be upload, overwrite, rename, delete, default to be upload)
 # * extra  (optional, new filename for action 'rename')
+# * create (optional, create a new release if it doesn't exist)
 #
 # Example:
 #
@@ -62,8 +63,27 @@ curl -o /dev/null -sH "$AUTH" $GH_REPO || { echo "Error: Invalid repo, token or 
 response=$(curl -sH "$AUTH" $GH_TAGS)
 
 # Get ID of the release.
-eval $(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=' | sed 's/id/release_id/')
-[ "$release_id"  ] || { echo "Error: Failed to get release id for tag: $tag"; echo "$response" | awk 'length($0)<100' >&2; exit 1; }
+release_id=$(echo "$response" | grep -m1 -w \"id\": | sed -E -e 's/[^0-9]//g')
+if [ -z "$release_id" ]; then
+  if [ "$create" = 'true' ]; then
+    body=$(cat <<EOF
+{
+  "tag_name": "$tag",
+  "target_commitish": "master",
+  "name": "$tag",
+  "body": "",
+  "draft": false,
+  "prerelease": false
+}
+EOF
+    )
+    response=$(curl -H "$AUTH" -H "Content-Type: application/json" -d "$body" "$GH_REPO/releases")
+    release_id=$(echo "$response" | grep -m1 -w \"id\": | sed -E -e 's/[^0-9]//g')
+  else
+    echo "Error: Failed to get release id for tag: $tag"; echo "$response" | awk 'length($0)<100' >&2
+    exit 1
+  fi
+fi
 
 post_asset() {
   # Upload asset
