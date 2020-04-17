@@ -117,7 +117,7 @@ edit_release() {
 {
   "tag_name": "$tag",
   "target_commitish": "master",
-  "name": "daily-taiwan-pbf",
+  "name": "$tag",
   "body": "$(cat $filename | sed 's/"/\\"/g; $! s/$/\\n/' | tr -d '\n')",
   "draft": false,
   "prerelease": false
